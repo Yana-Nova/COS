@@ -31,13 +31,21 @@ class PetHomePage extends StatefulWidget {
 class _PetHomePageState extends State<PetHomePage> {
   final Random random = Random();
 
-  final List<String> petImages = [
-    'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg',
-    'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg',
-    'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg',
-    'https://raw.githubusercontent.com/Elizavetalii/phpet/main/pet_frog_green.png',
-    'https://raw.githubusercontent.com/Elizavetalii/phpet/main/pet_chick_yellow.png',
-    'https://raw.githubusercontent.com/Elizavetalii/phpet/main/pet_panda_black_white.png',
+  final List<Map<String,String>> petImages = [
+    {
+      'name':'Aereis',
+      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg'
+    },
+    {
+      'name':'Angelic',
+      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'
+    },
+    {
+      'name':'Angelic',
+      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'
+    },
+   
+    
   ];
 
   String petName = 'Пушинка';
