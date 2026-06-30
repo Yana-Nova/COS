@@ -31,7 +31,7 @@ class PetHomePage extends StatefulWidget {
 class _PetHomePageState extends State<PetHomePage> {
   final Random random = Random();
 
-  final List<Map<String,String>> petImages = [
+  final List<Map<String,String>> pets = [
     {
       'name':'Aereis',
       'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg'
@@ -41,16 +41,16 @@ class _PetHomePageState extends State<PetHomePage> {
       'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'
     },
     {
-      'name':'Angelic',
-      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'
+      'name':'Verdant',
+      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg'
     },
    
     
   ];
 
-  String petName = 'Пушинка';
-  String petImage =
-      'https://raw.githubusercontent.com/Elizavetalii/phpet/main/pet_bunny_white.png';
+  String petName = 'Angelic';
+  String petImage = 
+      'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg';
   String status = 'Я только проснулась. Что будем делать?';
 
   int mood = 6;
@@ -58,7 +58,7 @@ class _PetHomePageState extends State<PetHomePage> {
   int energy = 7;
   int coins = 0;
   int level = 1;
-
+bool umetbYly4weHue=false;
   Color get backgroundColor {
     if (mood >= 8) return const Color(0xFFFFE4F1);
     if (mood >= 4) return const Color(0xFFE7F4FF);
@@ -73,8 +73,10 @@ class _PetHomePageState extends State<PetHomePage> {
   }
 
   void changePet() {
+   final pet=pets[random.nextInt(pets.length)];
     setState(() {
-      petImage = petImages[random.nextInt(petImages.length)];
+      petImage =pet['image']!;
+      petName=pet['name']!;
       status = 'Теперь у меня новый питомец!';
     });
   }
@@ -141,8 +143,11 @@ class _PetHomePageState extends State<PetHomePage> {
 
   void buyBow() {
     setState(() {
-      if (coins >= 5) {
-        coins -= 5;
+      if (umetbYly4weHue==true){
+        status='Bbl yжe kynuлu yлyчшeнue';
+      }
+      else if (coins >= 67) {
+        coins -= 67;
         mood = min(10, mood + 2);
         petName = 'Принцесса $petName';
         status = 'Купили бантик. Теперь стиль +100.';
