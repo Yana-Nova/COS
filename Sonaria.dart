@@ -64,7 +64,12 @@ bool umetbYly4weHue=false;
     if (mood >= 4) return const Color(0xFFE7F4FF);
     return const Color(0xFFFFE8E1);
   }
-
+String get showPetName{
+   if (umetbYly4weHue==true){
+     return 'Принцесса $petName';
+   }
+  return petName;
+}
   String get moodText {
     if (mood >= 9) return 'счастье';
     if (mood >= 6) return 'норм';
@@ -148,11 +153,12 @@ bool umetbYly4weHue=false;
       }
       else if (coins >= 67) {
         coins -= 67;
+        umetbYly4weHue=true;
         mood = min(10, mood + 2);
         petName = 'Принцесса $petName';
         status = 'Купили бантик. Теперь стиль +100.';
       } else {
-        status = 'Нужно 5 монеток. Пока не хватает.';
+        status = 'Нужно 67 монеток. Пока не хватает.';
       }
     });
   }
@@ -290,7 +296,7 @@ bool umetbYly4weHue=false;
                     petPicture(),
                     const SizedBox(height: 12),
                     Text(
-                      petName,
+                      showPetName,
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -395,12 +401,7 @@ bool umetbYly4weHue=false;
                     Colors.purple,
                     changePet,
                   ),
-                  actionButton(
-                    'Бантик 5',
-                    Icons.shopping_bag,
-                    Colors.deepPurple,
-                    buyBow,
-                  ),
+                
                   actionButton(
                     'Обнять',
                     Icons.favorite,
@@ -408,13 +409,49 @@ bool umetbYly4weHue=false;
                     hugPet,
                   ),
                 ],
-              ),
+             ),
               const SizedBox(height: 18),
-              const Text(
-                'Задание: поменяй имя, картинки, цены, события и цвета.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
+
+Container(
+  width: double.infinity,
+  padding: const EdgeInsets.all(18),
+  decoration: BoxDecoration(
+    color: Colors.white.withOpacity(0.9),
+    borderRadius: BorderRadius.circular(24),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Магазин улучшений',
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      const SizedBox(height: 12),
+
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+  actionButton(
+                    'Улучшение-65 монеток',
+                    Icons.shopping_bag,
+                    Colors.deepPurple,
+                    buyBow,
+                  ),
+            actionButton(
+                    'Улучшение-65 монеток',
+                    Icons.shopping_bag,
+                    Colors.deepPurple,
+                    buyBow,
+                  ),
+        ],
+      ),
+    ],
+  ),
+),
             ],
           ),
         ),
