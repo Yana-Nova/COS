@@ -59,6 +59,7 @@ class _PetHomePageState extends State<PetHomePage> {
   int coins = 0;
   int level = 1;
 bool umetbYly4weHue=false;
+  bool haveAcollar=false;
   Color get backgroundColor {
     if (mood >= 8) return const Color(0xFFFFE4F1);
     if (mood >= 4) return const Color(0xFFE7F4FF);
@@ -105,8 +106,14 @@ String get showPetName{
         energy = max(0, energy - 2);
         hunger = min(10, hunger + 1);
         mood = min(10, mood + 2);
-        coins += 2;
+        if (haveAcollar==true){
+          coins+=52;
+          status='ошейник удачи сработал, +52 монеты';
+        } else{
+          coins += 2;
         status = 'Вы поиграли. Весело! +2 монетки.';
+        }
+        
       }
       checkLevel();
     });
@@ -145,7 +152,19 @@ String get showPetName{
       checkLevel();
     });
   }
-
+void buyCollar() {
+  setState((){
+   if (haveAcollar==true){
+     status='ошейник уже куплен';
+   } else if (coins >= 15) {
+      coins -= 15;
+      haveAcollar = true;
+      status = 'Купили ошейник удачи. Теперь игра дает больше монет!';
+    } else {
+      status = 'Нужно 15 монеток на ошейник.';
+    }
+  });
+}
   void buyBow() {
     setState(() {
       if (umetbYly4weHue==true){
@@ -442,10 +461,10 @@ Container(
                     buyBow,
                   ),
             actionButton(
-                    'Улучшение-65 монеток',
+                    'Улучшение-15 монеток',
                     Icons.shopping_bag,
                     Colors.deepPurple,
-                    buyBow,
+                    buyCollar,
                   ),
         ],
       ),
