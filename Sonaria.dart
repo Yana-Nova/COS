@@ -77,7 +77,45 @@ String get showPetName{
     if (mood >= 3) return 'грусть';
     return 'обида';
   }
+int  get chestPrice{
+  return level*5;
+}
+  void openChest() {
+  setState(() {
+    if (level < 2) {
+      status = 'Сундук откроется со 2 уровня!';
+      return;
+    }
 
+    if (coins < chestPrice) {
+      status = 'Нужно $chestPrice монеток на сундук.';
+      return;
+    }
+
+    coins -= chestPrice;
+
+    final prize = random.nextInt(4);
+
+    if (prize == 0) {
+      coins += level * 15;
+      status = 'В сундуке монеты! +${level * 15}';
+    } else if (prize == 1) {
+      mood = min(10, mood + 3);
+      status = 'В сундуке волшебная конфета! Настроение +3.';
+    } else if (prize == 2) {
+      energy = min(10, energy + 4);
+      status = 'В сундуке энергетик! Энергия +4.';
+    } else if(prize==3) {
+      hunger = max(0, hunger - 3);
+      status = 'В сундуке вкусняшка! Голод -3.';
+    } else if( prize==3&&level>=10){
+      coins+=170;
+      status='Легендарный сундук!';
+    }
+
+    checkLevel();
+  });
+}
   void changePet() {
    final pet=pets[random.nextInt(pets.length)];
     setState(() {
@@ -466,6 +504,12 @@ Container(
                     Colors.deepPurple,
                     buyCollar,
                   ),
+          actionButton(
+  'Сундук $chestPrice',
+  Icons.card_giftcard,
+  Color(0xff7caa74),
+  openChest,
+),
         ],
       ),
     ],
