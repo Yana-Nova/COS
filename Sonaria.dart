@@ -76,8 +76,32 @@ final List<Map<String, dynamic>> rewards = [
       if(reward['mood']!=null){
         mood=min(10,mood+(reward['mood']as int));
       }
+      if (reward['coins'] !=null ) {
+      coins += reward['coins'] as int;
+    }
+if (reward['energy'] != null) {
+      energy = min(10, energy + (reward['energy'] as int));
+    }
+
+    rewardTaken = true;
+    status = 'Получена награда: ${reward['title']}';
+
+    checkLevel();
     });
   }
+  void nextRewardDay() {
+  setState(() {
+    if (rewardDay >=7 ) {
+      rewardDay = 1;
+      status = 'Новая неделя наград началась!';
+    } else {
+      rewardDay +=1 ;
+      status = 'Наступил день $rewardDay!';
+    }
+
+    rewardTaken = false;
+  });
+}
 bool umetbYly4weHue=false;
   bool haveAcollar=false;
   Color get backgroundColor {
@@ -259,7 +283,54 @@ void buyCollar() {
       status = 'Ура! Новый уровень: $level.';
     }
   }
+Widget rewardCard(int index) {
+  final reward = rewards[index];
+  final day = index + 1;
 
+  final bool isPast = day < rewardDay;
+  final bool isToday = day == rewardDay;
+  final bool isFuture = day > rewardDay;
+
+  Color color = Colors.grey.shade200;
+
+  if (isPast) color = Colors.green.shade100;
+  if (isToday) color = Colors.amber.shade100;
+  if (isFuture) color = Colors.grey.shade300;
+
+  return Container(
+    width: 90,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: isToday ? Colors.orange : Colors.transparent,
+        width: 3,
+      ),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'День $day',
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 8),
+        Icon(
+          reward['icon'] as IconData,
+          size: 36,
+          color: isFuture ? Colors.grey : Colors.orange,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          isFuture ? 'Скоро' : reward['title'],
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ],
+    ),
+  );
+}
   Widget petPicture() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
