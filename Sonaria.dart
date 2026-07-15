@@ -331,6 +331,125 @@ Widget rewardCard(int index) {
     ),
   );
 }
+  void showRewardCalendar() {
+  // showDialog показывает всплывающее окно поверх приложения.
+  showDialog(
+    // context нужен Flutter, чтобы понять, где именно открыть окно.
+    context: context,
+
+    // builder строит то, что будет внутри всплывающего окна.
+    builder: (context) {
+      // Dialog - само красивое окно.
+      return Dialog(
+        // shape отвечает за форму окна.
+        // Здесь мы делаем скругленные углы.
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+
+        // child - содержимое окна.
+        child: Padding(
+          // Padding добавляет отступы внутри окна,
+          // чтобы текст и кнопки не прилипали к краям.
+          padding: const EdgeInsets.all(18),
+
+          child: Column(
+            // mainAxisSize.min значит:
+            // окно будет по высоте ровно под содержимое,
+            // а не растянется на весь экран.
+            mainAxisSize: MainAxisSize.min,
+
+            // children - все элементы внутри окна сверху вниз.
+            children: [
+              // Заголовок окна.
+              const Text(
+                'Календарь наград',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+
+              // Небольшой отступ между заголовком и днем.
+              const SizedBox(height: 8),
+
+              // Показываем текущий день награды.
+              Text(
+                'День $rewardDay из 7',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Wrap раскладывает карточки наград.
+              // Если карточки не помещаются в одну строку,
+              // они переходят на следующую.
+              Wrap(
+                spacing: 10, // расстояние между карточками по горизонтали
+                runSpacing: 10, // расстояние между строками карточек
+                alignment: WrapAlignment.center,
+
+                // List.generate создает 7 карточек.
+                // rewardCard - функция, которая рисует одну карточку.
+                children: List.generate(7, rewardCard),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Кнопка "Забрать".
+              ElevatedButton(
+                // Если rewardTaken == true, ставим null.
+                // onPressed: null выключает кнопку.
+                onPressed: rewardTaken
+                    ? null
+                    : () {
+                        // collectReward начисляет награду.
+                        collectReward();
+
+                        // Navigator.pop закрывает окно.
+                        Navigator.pop(context);
+                      },
+
+                // Стиль кнопки: цвет, текст, размер.
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
+                ),
+
+                // Текст на кнопке меняется:
+                // если награда забрана - "Уже забрано",
+                // иначе - "Забрать".
+                child: Text(
+                  rewardTaken ? 'Уже забрано' : 'Забрать',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+
+              // Кнопка закрытия без получения награды.
+              TextButton(
+                onPressed: () {
+                  // Закрываем окно.
+                  Navigator.pop(context);
+                },
+                child: const Text('Закрыть'),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
   Widget petPicture() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
@@ -410,7 +529,19 @@ Widget rewardCard(int index) {
       ),
     );
   }
+@override
+void initState() {
+  // super.initState() запускает стандартную настройку экрана.
+  // Его почти всегда пишут первым внутри initState.
+  super.initState();
 
+  // addPostFrameCallback говорит Flutter:
+  // "Сначала нарисуй экран, а потом выполни этот код".
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Открываем окно с календарем наград при входе в игру.
+    showRewardCalendar();
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -519,7 +650,19 @@ Widget rewardCard(int index) {
                 runSpacing: 10,
                 alignment: WrapAlignment.center,
                 children: [
-                  actionButton(
+      actionButton(
+        'Награды',
+        Icons.calendar_month,
+        Colors.amber,
+        showRewardCalendar,
+      ),
+      actionButton(
+        'Новый день',
+        Icons.next_plan,
+        Colors.green,
+        nextRewardDay,
+      ),                  
+                    actionButton(
                     'Покормить',
                     Icons.restaurant,
                     Colors.orange,
