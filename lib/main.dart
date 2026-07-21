@@ -346,7 +346,11 @@ Widget rewardCard(int index) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),
-
+child: ConstrainedBox(
+  constraints: BoxConstraints(
+    maxHeight: MediaQuery.of(context).size.height * 0.85,
+  ),
+  child: SingleChildScrollView(
         // child - содержимое окна.
         child: Padding(
           // Padding добавляет отступы внутри окна,
@@ -446,7 +450,7 @@ Widget rewardCard(int index) {
             ],
           ),
         ),
-      );
+      )));
     },
   );
 }
