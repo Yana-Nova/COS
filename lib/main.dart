@@ -60,7 +60,8 @@ class _PetHomePageState extends State<PetHomePage> {
   int level = 1;
   int rewardDay = 1;
 bool rewardTaken = false;
-
+final TextEditingController cccp=TextEditingController();
+  final Set<String> usedPromocode={};
 final List<Map<String, dynamic>> rewards = [
   {'title': '+10 монет', 'coins': 10, 'icon': Icons.monetization_on},
   {'title': '+15 монет', 'coins': 15, 'icon': Icons.monetization_on},
@@ -87,6 +88,46 @@ if (reward['energy'] != null) {
     status = 'Получена награда: ${reward['title']}';
 
     checkLevel();
+    });
+  }
+  void caxapok (){
+    String tanok=cccp.text.trim().toUpperCase();
+    setState((){
+      if (tanok.isEmpty){
+        status='Введите промокод';
+        return;
+      }
+      if (usedPromocode.contains(tanok)){
+        status='Промокод уже использован';
+          return;
+      }
+      if (tanok == 'AEREISSTARTICKET') {
+       if (petName != 'Aereis') {
+    status = 'Промокод работает только для Aereis.';
+    return;
+  }
+        coins += 220;
+      energy=10;
+      status = 'Промокод AEREISSTARTICKET принят! +220 монет и энергия на максимум.';
+      usedPromocode.add(tanok);
+    } else if (tanok == 'ANGELICPROMOTICKET') {
+      if (petName != 'Angelic') {
+    status = 'Промокод работает только для Angelic.';
+    return;
+  }
+        coins += 50;
+      energy=10;
+        mood=10;
+      status = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
+      usedPromocode.add(tanok);
+    } else if (tanok == 'COSPROMO') {
+      mood = 10;
+      coins += 100;
+      status = 'Секретный промокод COSPROMO! Настроение максимум и +100 монет.';
+      usedPromocode.add(tanok);
+    } else {
+      status = 'Такого промокода нет.';
+    }
     });
   }
   void nextRewardDay() {
