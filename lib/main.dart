@@ -101,6 +101,8 @@ if (reward['energy'] != null) {
         status='Промокод уже использован';
           return;
       }
+      bool promoActivated = false;
+    String promoStatus = '';
       if (tanok == 'AEREISSTARTICKET') {
        if (petName != 'Aereis') {
     status = 'Промокод работает только для Aereis.';
@@ -108,26 +110,41 @@ if (reward['energy'] != null) {
   }
         coins += 220;
       energy=10;
-      status = 'Промокод AEREISSTARTICKET принят! +220 монет и энергия на максимум.';
+      promoStatus = 'Промокод AEREISSTARTICKET принят! +220 монет и энергия на максимум.';
       usedPromocode.add(tanok);
+        promoActivated = true;
     } else if (tanok == 'ANGELICPROMOTICKET') {
       if (petName != 'Angelic') {
     status = 'Промокод работает только для Angelic.';
     return;
   }
-        coins += 50;
+        coins += 200;
       energy=10;
         mood=10;
-      status = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
+      promoStatus = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
       usedPromocode.add(tanok);
+        promoActivated = true;
     } else if (tanok == 'COSPROMO') {
       mood = 10;
       coins += 100;
-      status = 'Секретный промокод COSPROMO! Настроение максимум и +100 монет.';
+      promoStatus = 'Секретный промокод COSPROMO! Настроение максимум и +100 монет.';
       usedPromocode.add(tanok);
+        promoActivated = true;
     } else {
       status = 'Такого промокода нет.';
     }
+      if (promoActivated) {
+      int oldLevel = level;
+
+      checkLevel();
+
+      if (level > oldLevel) {
+        status = '$promoStatus Новый уровень: $level!';
+      } else {
+        status = promoStatus;
+      }
+    }
+      cccp.clear();
     });
   }
   void nextRewardDay() {
@@ -370,6 +387,37 @@ Widget rewardCard(int index) {
         ),
       ],
     ),
+  );
+}
+  void showPromoDialog() {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Секретный промокод'),
+        content: TextField(
+          controller: cccp,
+          decoration: const InputDecoration(
+            hintText: 'Например: COOKIE',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Закрыть'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              caxapok();
+            },
+            child: const Text('Активировать'),
+          ),
+        ],
+      );
+    },
   );
 }
   void showRewardCalendar() {
@@ -706,7 +754,13 @@ void initState() {
         Icons.next_plan,
         Colors.green,
         nextRewardDay,
-      ),                  
+      ),
+                  actionButton(
+  'Промокод',
+  Icons.lock_open,
+  Colors.deepPurple,
+  showPromoDialog,
+),
                     actionButton(
                     'Покормить',
                     Icons.restaurant,
