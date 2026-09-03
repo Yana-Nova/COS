@@ -231,8 +231,8 @@ int  get chestPrice{
     setState(() {
       hunger = max(0, hunger - 2);
       mood = min(10, mood + 1);
-      coins += 1;
-      status = '$petName вкусно поела и получила +1 монетку.';
+      coins += 0;
+      status = '$petName вкусно поела.';
       checkLevel();
     });
   }
