@@ -227,15 +227,73 @@ int  get chestPrice{
     });
   }
 
-  void feedPet() {
+
+
+final _random = Random();
+
+void feedPet() {
+  const baseCost = 2;
+  
+  // 30% шанс, что питомец найдёт монетку прямо во время еды
+  final hasFoundCoin = _random.nextDouble() < 0.3;
+  // 20% шанс на особую радость (бонус к настроению)
+  final isExtraHappy = _random.nextDouble() < 0.2;
+
+  if (coins >= baseCost) {
     setState(() {
       hunger = max(0, hunger - 2);
-      mood = min(10, mood + 1);
-      coins += 0;
-      status = '$petName вкусно поела.';
+      
+      var moodBonus = 1;
+      String extraMsg = '';
+
+      if (isExtraHappy) {
+        moodBonus += 2; // +2 к настроению за особую радость
+        extraMsg = 'И так обрадовалась, что аж хвостиком виляет! ';
+      }
+
+      mood = min(10, mood + moodBonus);
+      coins -= baseCost;
+
+      if (hasFoundCoin) {
+        coins += 1;
+        extraMsg += 'А ещё нашла 1 монетку в миске! 🎉';
+      }
+
+      status = '$petName вкусно поела. $extraMsg';
+      checkLevel();
+    });
+  } else {
+    // Добрая механика: если не хватает монет, происходит милый случай
+    final kindEvent = _random.nextInt(3); // 0, 1 или 2
+
+    setState(() {
+      String kindMsg;
+
+      switch (kindEvent) {
+        case 0:
+          // Сосед принёс вкусняшку
+          hunger = max(0, hunger - 1);
+          mood = min(10, mood + 1);
+          kindMsg = 'Ой, сосед принёс вкусняшку для $petName! Она немного поела, но монет не потратила. 😊';
+          break;
+        case 1:
+          // Питомец сам нашёл кусочек
+          hunger = max(0, hunger - 1);
+          mood = min(10, mood + 1);
+          kindMsg = '$petName сама нашла кусочек корма за диваном. Сыта и горда собой! 💛';
+          break;
+        default:
+          // Просто грустит, но не критично
+          mood = max(0, mood - 1); // чуть грустнеет, но без драмы
+          kindMsg = '$petName немножко грустит — нет монет на еду… Но она верит, что скоро всё будет хорошо. 🥺';
+      }
+
+      status = kindMsg;
       checkLevel();
     });
   }
+}
+
 
   void playWithPet() {
     setState(() {
