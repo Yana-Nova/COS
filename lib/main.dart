@@ -162,6 +162,9 @@ if (reward['energy'] != null) {
 }
 bool umetbYly4weHue=false;
   bool haveAcollar=false;
+  // Дни рождения питомцев: ключ — имя питомца, значение — дата
+Map<String, DateTime> petBirthdays = {};
+bool isBirthdayCelebrated = false; // Отмечали ли уже ДР текущего питомца
   Color get backgroundColor {
     if (mood >= 8) return const Color(0xFFFFE4F1);
     if (mood >= 4) return const Color(0xFFE7F4FF);
@@ -223,9 +226,15 @@ int  get chestPrice{
     setState(() {
       petImage =pet['image']!;
       petName=pet['name']!;
-      status = 'Теперь у меня новый питомец!';
+      isBirthdayCelebrated = false; // Сбрасываем флаг для нового питомца
+      if (petBirthdays.containsKey(petName)) {
+        status = 'Теперь у меня новый питомец! ДР: ${_formatDate(petBirthdays[petName]!)}';
+      } else {
+        status = 'Теперь у меня новый питомец! Не забудь задать день рождения.';
+      }
     });
   }
+
 
 
 
@@ -426,6 +435,93 @@ void buyCollar() {
       status = 'Ура! Новый уровень: $level.';
     }
   }
+  String _formatDate(DateTime d) {
+  return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+}
+
+void setBirthdayDate() async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2020),
+    lastDate: DateTime(2030),
+  );
+  if (picked != null) {
+    setState(() {
+      petBirthdays[petName] = picked;
+      isBirthdayCelebrated = false;
+      status = 'День рождения $petName — ${_formatDate(picked)}! 🎂';
+    });
+  }
+}
+
+void celebrateBirthday() {
+  if (petBirthdays[petName] == null) {
+    setState(() {
+      status = 'Сначала задай дату дня рождения для $petName!';
+    });
+    setBirthdayDate();
+    return;
+  }
+  if (isBirthdayCelebrated) {
+    setState(() {
+      status = 'День рождения $petName уже праздновали! 🎈';
+    });
+    return;
+  }
+
+  setState(() {
+    isBirthdayCelebrated = true;
+    mood = 10;
+    energy = min(10, energy + 5);
+    hunger = max(0, hunger - 3);
+    coins += 50;
+    status = '🎉 С Днём Рождения, $petName! 🎈 Шарики, подарок и +50 монет! Настроение на максимуме!';
+    checkLevel();
+  });
+
+  showBirthdayDialog();
+}
+
+void showBirthdayDialog() {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('🎉 День Рождения! 🎈', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🎈🎈🎈', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(
+              'С Днём Рождения, $petName!',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Подарок: +50 монет, настроение на максимум, энергия +5!',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Ура!'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Widget rewardCard(int index) {
   final reward = rewards[index];
   final day = index + 1;
@@ -768,6 +864,19 @@ void initState() {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    if (petBirthdays[petName] != null)
+  Padding(
+    padding: const EdgeInsets.only(top: 4),
+    child: Text(
+      '🎂 ДР: ${_formatDate(petBirthdays[petName]!)}',
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.pink.shade400,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  ),
+
                     const SizedBox(height: 14),
                     Container(
                       width: double.infinity,
@@ -883,6 +992,13 @@ void initState() {
                     Colors.redAccent,
                     hugPet,
                   ),
+                  actionButton(
+  'Праздник',
+  Icons.cake,
+  Colors.pink,
+  celebrateBirthday,
+),
+
                 ],
              ),
               const SizedBox(height: 18),
