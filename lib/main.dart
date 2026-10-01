@@ -31,26 +31,58 @@ class PetHomePage extends StatefulWidget {
 class _PetHomePageState extends State<PetHomePage> {
   final Random random = Random();
 
-  final List<Map<String,String>> pets = [
+  // ── Питомцы со скинами ──────────────────────────────────────────────
+  final List<Map<String, dynamic>> pets = [
     {
-      'name':'Aereis',
-      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg'
+      'name': 'Aereis',
+      'skins': [
+        {'name': 'Базовый',  'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg'},
+        {'name': 'Огненный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FireAereis.jpg'},
+      ],
     },
     {
-      'name':'Angelic',
-      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'
+      'name': 'Angelic',
+      'skins': [
+        {'name': 'Базовый',   'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg'},
+        {'name': 'Серебряный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/AngelicSkin.jpeg'},
+      ],
     },
     {
-      'name':'Verdant',
-      'image':'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg'
+      'name': 'Verdant',
+      'skins': [
+        {'name': 'Базовый',  'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg'},
+        {'name': 'SF Verdant', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/SF%20Verdant.jpg'},
+      ],
     },
-   
-    
+    {
+      'name': 'Ghartokus',
+      'skins': [
+        {'name': 'Базовый',        'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/ghartokus.jpeg'},
+        {'name': 'Цветочный',      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FlowerGhart.jpg'},
+        {'name': 'Золотое солнце', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/GoldenSunshineGhart.jpeg'},
+        {'name': 'Осенний огонь', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/OutumnOnFireGHART.jpg'},
+      ],
+    },
   ];
 
-  String petName = 'Angelic';
-  String petImage = 
-      'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg';
+  // Индекс текущего питомца (1 = Angelic при старте)
+  int currentPetIndex = 1;
+
+  // Какой скин выбран для каждого питомца (по имени)
+  final Map<String, int> petSkinIndices = {};
+
+  String get petName => pets[currentPetIndex]['name'] as String;
+  String get petImage {
+    final skins = pets[currentPetIndex]['skins'] as List<Map<String, String>>;
+    final idx = petSkinIndices[petName] ?? 0;
+    return skins[idx]['image']!;
+  }
+  String get currentSkinName {
+    final skins = pets[currentPetIndex]['skins'] as List<Map<String, String>>;
+    final idx = petSkinIndices[petName] ?? 0;
+    return skins[idx]['name']!;
+  }
+
   String status = 'Я только проснулась. Что будем делать?';
 
   int mood = 6;
@@ -59,174 +91,181 @@ class _PetHomePageState extends State<PetHomePage> {
   int coins = 0;
   int level = 1;
   int rewardDay = 1;
-bool rewardTaken = false;
-final TextEditingController cccp=TextEditingController();
-  final Set<String> usedPromocode={};
-final List<Map<String, dynamic>> rewards = [
-  {'title': '+10 монет', 'coins': 10, 'icon': Icons.monetization_on},
-  {'title': '+15 монет', 'coins': 15, 'icon': Icons.monetization_on},
-  {'title': '+2 настроение', 'mood': 2, 'icon': Icons.favorite},
-  {'title': '+20 монет', 'coins': 20, 'icon': Icons.card_giftcard},
-  {'title': '+3 энергия', 'energy': 3, 'icon': Icons.bolt},
-  {'title': '+30 монет', 'coins': 30, 'icon': Icons.redeem},
-  {'title': 'Супер приз', 'coins': 100, 'mood': 5, 'icon': Icons.star},
-];
-  void collectReward(){
-    setState((){
-      final reward=rewards [rewardDay-1]; 
-      if(reward['mood']!=null){
-        mood=min(10,mood+(reward['mood']as int));
+  bool rewardTaken = false;
+  final TextEditingController cccp = TextEditingController();
+  final Set<String> usedPromocode = {};
+
+  final List<Map<String, dynamic>> rewards = [
+    {'title': '+10 монет', 'coins': 10, 'icon': Icons.monetization_on},
+    {'title': '+15 монет', 'coins': 15, 'icon': Icons.monetization_on},
+    {'title': '+2 настроение', 'mood': 2, 'icon': Icons.favorite},
+    {'title': '+20 монет', 'coins': 20, 'icon': Icons.card_giftcard},
+    {'title': '+3 энергия', 'energy': 3, 'icon': Icons.bolt},
+    {'title': '+30 монет', 'coins': 30, 'icon': Icons.redeem},
+    {'title': 'Супер приз', 'coins': 100, 'mood': 5, 'icon': Icons.star},
+  ];
+
+  void collectReward() {
+    setState(() {
+      final reward = rewards[rewardDay - 1];
+      if (reward['mood'] != null) {
+        mood = min(10, mood + (reward['mood'] as int));
       }
-      if (reward['coins'] !=null ) {
-      coins += reward['coins'] as int;
-    }
-if (reward['energy'] != null) {
-      energy = min(10, energy + (reward['energy'] as int));
-    }
-
-    rewardTaken = true;
-    status = 'Получена награда: ${reward['title']}';
-
-    checkLevel();
+      if (reward['coins'] != null) {
+        coins += reward['coins'] as int;
+      }
+      if (reward['energy'] != null) {
+        energy = min(10, energy + (reward['energy'] as int));
+      }
+      rewardTaken = true;
+      status = 'Получена награда: ${reward['title']}';
+      checkLevel();
     });
   }
-  void caxapok (){
-    String tanok=cccp.text.trim().toUpperCase();
-    setState((){
-      if (tanok.isEmpty){
-        status='Введите промокод';
+
+  void caxapok() {
+    String tanok = cccp.text.trim().toUpperCase();
+    setState(() {
+      if (tanok.isEmpty) {
+        status = 'Введите промокод';
         return;
       }
-      if (usedPromocode.contains(tanok)){
-        status='Промокод уже использован';
-          return;
+      if (usedPromocode.contains(tanok)) {
+        status = 'Промокод уже использован';
+        return;
       }
       bool promoActivated = false;
-    String promoStatus = '';
+      String promoStatus = '';
       if (tanok == 'AEREISSTARTICKET') {
-       if (petName != 'Aereis') {
-    status = 'Промокод работает только для Aereis.';
-    return;
-  }
+        if (petName != 'Aereis') {
+          status = 'Промокод работает только для Aereis.';
+          return;
+        }
         coins += 220;
-      energy=10;
-      promoStatus = 'Промокод AEREISSTARTICKET принят! +220 монет и энергия на максимум.';
-      usedPromocode.add(tanok);
+        energy = 10;
+        promoStatus = 'Промокод AEREISSTARTICKET принят! +220 монет и энергия на максимум.';
+        usedPromocode.add(tanok);
         promoActivated = true;
-    } else if (tanok == 'ANGELICPROMOTICKET') {
-      if (petName != 'Angelic') {
-    status = 'Промокод работает только для Angelic.';
-    return;
-  }
+      } else if (tanok == 'ANGELICPROMOTICKET') {
+        if (petName != 'Angelic') {
+          status = 'Промокод работает только для Angelic.';
+          return;
+        }
         coins += 200;
-      energy=10;
-        mood=10;
-      promoStatus = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
-      usedPromocode.add(tanok);
+        energy = 10;
+        mood = 10;
+        promoStatus = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
+        usedPromocode.add(tanok);
         promoActivated = true;
-    } else if (tanok == 'COSPROMO') {
-      mood = 10;
-      coins += 100;
-      promoStatus = 'Секретный промокод COSPROMO! Настроение максимум и +100 монет.';
-      usedPromocode.add(tanok);
+      } else if (tanok == 'COSPROMO') {
+        mood = 10;
+        coins += 100;
+        promoStatus = 'Секретный промокод COSPROMO! Настроение максимум и +100 монет.';
+        usedPromocode.add(tanok);
         promoActivated = true;
-    } else {
-      status = 'Такого промокода нет.';
-    }
-      if (promoActivated) {
-      int oldLevel = level;
-
-      checkLevel();
-
-      if (level > oldLevel) {
-        status = '$promoStatus Новый уровень: $level!';
       } else {
-        status = promoStatus;
+        status = 'Такого промокода нет.';
       }
-    }
+      if (promoActivated) {
+        int oldLevel = level;
+        checkLevel();
+        if (level > oldLevel) {
+          status = '$promoStatus Новый уровень: $level!';
+        } else {
+          status = promoStatus;
+        }
+      }
       cccp.clear();
     });
   }
-  void nextRewardDay() {
-  setState(() {
-    if (rewardDay >=7 ) {
-      rewardDay = 1;
-      status = 'Новая неделя наград началась!';
-    } else {
-      rewardDay +=1 ;
-      status = 'Наступил день $rewardDay!';
-    }
 
-    rewardTaken = false;
-  });
-}
-bool umetbYly4weHue=false;
-  bool haveAcollar=false;
-  // Дни рождения питомцев: ключ — имя питомца, значение — дата
-Map<String, DateTime> petBirthdays = {};
-bool isBirthdayCelebrated = false; // Отмечали ли уже ДР текущего питомца
+  void nextRewardDay() {
+    setState(() {
+      if (rewardDay >= 7) {
+        rewardDay = 1;
+        status = 'Новая неделя наград началась!';
+      } else {
+        rewardDay += 1;
+        status = 'Наступил день $rewardDay!';
+      }
+      rewardTaken = false;
+    });
+  }
+
+  bool umetbYly4weHue = false;
+  bool haveAcollar = false;
+
+  Map<String, DateTime> petBirthdays = {};
+  bool isBirthdayCelebrated = false;
+
   Color get backgroundColor {
     if (mood >= 8) return const Color(0xFFFFE4F1);
     if (mood >= 4) return const Color(0xFFE7F4FF);
     return const Color(0xFFFFE8E1);
   }
-String get showPetName{
-   if (umetbYly4weHue==true){
-     return 'Принцесса $petName';
-   }
-  return petName;
-}
+
+  String get showPetName {
+    if (umetbYly4weHue) {
+      return 'Принцесса $petName';
+    }
+    return petName;
+  }
+
   String get moodText {
     if (mood >= 9) return 'счастье';
     if (mood >= 6) return 'норм';
     if (mood >= 3) return 'грусть';
     return 'обида';
   }
-int  get chestPrice{
-  return level*5;
-}
+
+  int get chestPrice {
+    return level * 5;
+  }
+
   void openChest() {
-  setState(() {
-    if (level < 2) {
-      status = 'Сундук откроется со 2 уровня!';
-      return;
-    }
-
-    if (coins < chestPrice) {
-      status = 'Нужно $chestPrice монеток на сундук.';
-      return;
-    }
-
-    coins -= chestPrice;
-
-    final prize = random.nextInt(4);
-
-    if (prize == 0) {
-      coins += level * 15;
-      status = 'В сундуке монеты! +${level * 15}';
-    } else if (prize == 1) {
-      mood = min(10, mood + 3);
-      status = 'В сундуке волшебная конфета! Настроение +3.';
-    } else if (prize == 2) {
-      energy = min(10, energy + 4);
-      status = 'В сундуке энергетик! Энергия +4.';
-    } else if(prize==3) {
-      hunger = max(0, hunger - 3);
-      status = 'В сундуке вкусняшка! Голод -3.';
-    } else if( prize==3&&level>=10){
-      coins+=170;
-      status='Легендарный сундук!';
-    }
-
-    checkLevel();
-  });
-}
-  void changePet() {
-   final pet=pets[random.nextInt(pets.length)];
     setState(() {
-      petImage =pet['image']!;
-      petName=pet['name']!;
-      isBirthdayCelebrated = false; // Сбрасываем флаг для нового питомца
+      if (level < 2) {
+        status = 'Сундук откроется со 2 уровня!';
+        return;
+      }
+      if (coins < chestPrice) {
+        status = 'Нужно $chestPrice монеток на сундук.';
+        return;
+      }
+      coins -= chestPrice;
+      final prize = random.nextInt(4);
+      if (prize == 0) {
+        coins += level * 15;
+        status = 'В сундуке монеты! +${level * 15}';
+      } else if (prize == 1) {
+        mood = min(10, mood + 3);
+        status = 'В сундуке волшебная конфета! Настроение +3.';
+      } else if (prize == 2) {
+        energy = min(10, energy + 4);
+        status = 'В сундуке энергетик! Энергия +4.';
+      } else if (prize == 3) {
+        hunger = max(0, hunger - 3);
+        status = 'В сундуке вкусняшка! Голод -3.';
+        if (level >= 10) {
+          coins += 170;
+          status = 'Легендарный сундук! +170 монет!';
+        }
+      }
+      checkLevel();
+    });
+  }
+
+  // ── Смена питомца (рандом, без повтора текущего) ───────────────────
+  void changePet() {
+    if (pets.length <= 1) return;
+    int newIndex;
+    do {
+      newIndex = random.nextInt(pets.length);
+    } while (newIndex == currentPetIndex);
+
+    setState(() {
+      currentPetIndex = newIndex;
+      isBirthdayCelebrated = false;
       if (petBirthdays.containsKey(petName)) {
         status = 'Теперь у меня новый питомец! ДР: ${_formatDate(petBirthdays[petName]!)}';
       } else {
@@ -235,101 +274,222 @@ int  get chestPrice{
     });
   }
 
-
-
-
-final _random = Random();
-
-void feedPet() {
-  // Базовая стоимость кормления питомца (2 монеты)
-  const baseCost = 2;
-  
-  // Генерируем случайное число от 0.0 до 1.0; если оно меньше 0.3 (30%), значит питомец нашёл монетку
-  final hasFoundCoin = _random.nextDouble() < 0.3;
-  // Аналогично: если случайное число меньше 0.2 (20%), питомец испытывает особую радость
-  final isExtraHappy = _random.nextDouble() < 0.2;
-
-  // Проверяем, хватает ли у игрока монет для оплаты корма
-  if (coins >= baseCost) {
-    // Обновляем состояние интерфейса и данных виджета
+  // ── Смена скина: меняет ТОЛЬКО картинку ─────────────────────────────
+  void changeSkin(int skinIndex) {
     setState(() {
-      // Уменьшаем уровень голода на 2 единицы, но не ниже 0
-      hunger = max(0, hunger - 2);
-      
-      // Начальный бонус к настроению равен 1
-      var moodBonus = 1;
-      // Переменная для хранения дополнительного сообщения о событии
-      String extraMsg = '';
-
-      // Если сработал шанс особой радости
-      if (isExtraHappy) {
-        // Увеличиваем бонус к настроению ещё на 2
-        moodBonus += 2;
-        // Добавляем текст про виляющий хвостик в сообщение
-        extraMsg = 'И так обрадовалась, что аж хвостиком виляет! ';
-      }
-
-      // Повышаем настроение питомца на величину бонуса, но не выше максимума (10)
-      mood = min(10, mood + moodBonus);
-      // Списываем базовую стоимость корма из монет игрока
-      coins -= baseCost;
-
-      // Если питомец нашёл монетку во время еды
-      if (hasFoundCoin) {
-        // Добавляем 1 монету к балансу игрока
-        coins += 1;
-        // Дополняем сообщение радостной новостью про найденную монетку
-        extraMsg += 'А ещё нашла 1 монетку в миске! 🎉';
-      }
-
-      // Формируем итоговое сообщение о том, что питомец поел, плюс любые дополнительные события
-      status = '$petName вкусно поела. $extraMsg';
-      // Запускаем проверку, пора ли повышать уровень питомца
-      checkLevel();
-    });
-  } else {
-    // Если монет не хватает, запускаем «добрую» механику с милым событием
-    // Генерируем случайное целое число 0, 1 или 2 (шанс каждого варианта ~33%)
-    final kindEvent = _random.nextInt(3);
-
-    // Обновляем состояние интерфейса и данных виджета
-    setState(() {
-      // Переменная для хранения текста о милом событии
-      String kindMsg;
-
-      // Выбираем один из трёх вариантов развития событий
-      switch (kindEvent) {
-        case 0:
-          // Вариант 1: сосед принёс вкусняшку
-          // Питомец немного утоляет голод (-1), настроение растёт (+1)
-          hunger = max(0, hunger - 1);
-          mood = min(10, mood + 1);
-          // Формируем сообщение про доброго соседа
-          kindMsg = 'Ой, сосед принёс вкусняшку для $petName! Она немного поела, но монет не потратила. 😊';
-          break;
-        case 1:
-          // Вариант 2: питомец сам нашёл кусочек корма
-          // Аналогично: голод -1, настроение +1
-          hunger = max(0, hunger - 1);
-          mood = min(10, mood + 1);
-          // Сообщение про находчивость питомца
-          kindMsg = '$petName сама нашла кусочек корма за диваном. Сыта и горда собой! 💛';
-          break;
-        default:
-          // Вариант 3 (случай 2): монет нет, питомец грустит
-          // Настроение немного снижается (-1), но без сильной драмы
-          mood = max(0, mood - 1);
-          // Грустное, но ободряющее сообщение
-          kindMsg = '$petName немножко грустит — нет монет на еду… Но она верит, что скоро всё будет хорошо. 🥺';
-      }
-
-      // Устанавливаем статус с текстом о произошедшем милом случае
-      status = kindMsg;
-      // Проверяем, пора ли повышать уровень питомца
-      checkLevel();
+      petSkinIndices[petName] = skinIndex;
+      final skins = pets[currentPetIndex]['skins'] as List<Map<String, String>>;
+      final skinName = skins[skinIndex]['name']!;
+      status = 'Скин изменён: «$skinName»';
     });
   }
-}
+
+  // ── Диалог выбора скина ────────────────────────────────────────────
+  void showSkinDialog() {
+    final skins = pets[currentPetIndex]['skins'] as List<Map<String, String>>;
+    final currentSkin = petSkinIndices[petName] ?? 0;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(18),
+              child: StatefulBuilder(
+                builder: (context, setDialogState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Скины — $petName',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Текущий: ${skins[currentSkin]['name']}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.82,
+                        ),
+                        itemCount: skins.length,
+                        itemBuilder: (context, index) {
+                          final skin = skins[index];
+                          final isSelected = index ==
+                              (petSkinIndices[petName] ?? 0);
+
+                          return GestureDetector(
+                            onTap: () {
+                              changeSkin(index);
+                              setDialogState(() {});
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.pinkAccent.withOpacity(0.12)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.pinkAccent
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 3 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Image.network(
+                                      skin['image']!,
+                                      height: 118,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (ctx, child, progress) {
+                                        if (progress == null) return child;
+                                        return SizedBox(
+                                          height: 118,
+                                          child: const Center(
+                                            child:
+                                                CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (ctx, error, _) {
+                                        return Container(
+                                          height: 118,
+                                          color: Colors.grey.shade200,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 36,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    skin['name']!,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: isSelected
+                                          ? Colors.pinkAccent
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        '✓ Выбран',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.pinkAccent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Закрыть'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  final _random = Random();
+
+  void feedPet() {
+    const baseCost = 2;
+    final hasFoundCoin = _random.nextDouble() < 0.3;
+    final isExtraHappy = _random.nextDouble() < 0.2;
+
+    if (coins >= baseCost) {
+      setState(() {
+        hunger = max(0, hunger - 2);
+        var moodBonus = 1;
+        String extraMsg = '';
+        if (isExtraHappy) {
+          moodBonus += 2;
+          extraMsg = 'И так обрадовалась, что аж хвостиком виляет! ';
+        }
+        mood = min(10, mood + moodBonus);
+        coins -= baseCost;
+        if (hasFoundCoin) {
+          coins += 1;
+          extraMsg += 'А ещё нашла 1 монетку в миске! 🎉';
+        }
+        status = '$petName вкусно поела. $extraMsg';
+        checkLevel();
+      });
+    } else {
+      final kindEvent = _random.nextInt(3);
+      setState(() {
+        String kindMsg;
+        switch (kindEvent) {
+          case 0:
+            hunger = max(0, hunger - 1);
+            mood = min(10, mood + 1);
+            kindMsg =
+                'Ой, сосед принёс вкусняшку для $petName! Она немного поела, но монет не потратила. 😊';
+            break;
+          case 1:
+            hunger = max(0, hunger - 1);
+            mood = min(10, mood + 1);
+            kindMsg =
+                '$petName сама нашла кусочек корма за диваном. Сыта и горда собой! 💛';
+            break;
+          default:
+            mood = max(0, mood - 1);
+            kindMsg =
+                '$petName немножко грустит — нет монет на еду… Но она верит, что скоро всё будет хорошо. 🥺';
+        }
+        status = kindMsg;
+        checkLevel();
+      });
+    }
+  }
 
   void playWithPet() {
     setState(() {
@@ -340,14 +500,13 @@ void feedPet() {
         energy = max(0, energy - 2);
         hunger = min(10, hunger + 1);
         mood = min(10, mood + 2);
-        if (haveAcollar==true){
-          coins+=52;
-          status='ошейник удачи сработал, +52 монеты';
-        } else{
+        if (haveAcollar) {
+          coins += 52;
+          status = 'Ошейник удачи сработал, +52 монеты';
+        } else {
           coins += 2;
-        status = 'Вы поиграли. Весело! +2 монетки.';
+          status = 'Вы поиграли. Весело! +2 монетки.';
         }
-        
       }
       checkLevel();
     });
@@ -370,9 +529,7 @@ void feedPet() {
       'Съела тайный кекс. Голод -3.',
       'Танцевала 10 минут. Энергия -2, монетки +2.',
     ];
-
     final String event = events[random.nextInt(events.length)];
-
     setState(() {
       if (event.contains('+3')) coins += 3;
       if (event.contains('Настроение -2')) mood = max(0, mood - 2);
@@ -386,29 +543,29 @@ void feedPet() {
       checkLevel();
     });
   }
-void buyCollar() {
-  setState((){
-   if (haveAcollar==true){
-     status='ошейник уже куплен';
-   } else if (coins >= 15) {
-      coins -= 15;
-      haveAcollar = true;
-      status = 'Купили ошейник удачи. Теперь игра дает больше монет!';
-    } else {
-      status = 'Нужно 15 монеток на ошейник.';
-    }
-  });
-}
+
+  void buyCollar() {
+    setState(() {
+      if (haveAcollar) {
+        status = 'Ошейник уже куплен';
+      } else if (coins >= 15) {
+        coins -= 15;
+        haveAcollar = true;
+        status = 'Купили ошейник удачи. Теперь игра дает больше монет!';
+      } else {
+        status = 'Нужно 15 монеток на ошейник.';
+      }
+    });
+  }
+
   void buyBow() {
     setState(() {
-      if (umetbYly4weHue==true){
-        status='Bbl yжe kynuлu yлyчшeнue';
-      }
-      else if (coins >= 67) {
+      if (umetbYly4weHue) {
+        status = 'Вы уже купили улучшение';
+      } else if (coins >= 67) {
         coins -= 67;
-        umetbYly4weHue=true;
+        umetbYly4weHue = true;
         mood = min(10, mood + 2);
-        petName = 'Принцесса $petName';
         status = 'Купили бантик. Теперь стиль +100.';
       } else {
         status = 'Нужно 67 монеток. Пока не хватает.';
@@ -435,295 +592,229 @@ void buyCollar() {
       status = 'Ура! Новый уровень: $level.';
     }
   }
+
   String _formatDate(DateTime d) {
-  return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
-}
-
-void setBirthdayDate() async {
-  final DateTime? picked = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2020),
-    lastDate: DateTime(2030),
-  );
-  if (picked != null) {
-    setState(() {
-      petBirthdays[petName] = picked;
-      isBirthdayCelebrated = false;
-      status = 'День рождения $petName — ${_formatDate(picked)}! 🎂';
-    });
-  }
-}
-
-void celebrateBirthday() {
-  if (petBirthdays[petName] == null) {
-    setState(() {
-      status = 'Сначала задай дату дня рождения для $petName!';
-    });
-    setBirthdayDate();
-    return;
-  }
-  if (isBirthdayCelebrated) {
-    setState(() {
-      status = 'День рождения $petName уже праздновали! 🎈';
-    });
-    return;
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
   }
 
-  setState(() {
-    isBirthdayCelebrated = true;
-    mood = 10;
-    energy = min(10, energy + 5);
-    hunger = max(0, hunger - 3);
-    coins += 50;
-    status = '🎉 С Днём Рождения, $petName! 🎈 Шарики, подарок и +50 монет! Настроение на максимуме!';
-    checkLevel();
-  });
+  void setBirthdayDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        petBirthdays[petName] = picked;
+        isBirthdayCelebrated = false;
+        status = 'День рождения $petName — ${_formatDate(picked)}! 🎂';
+      });
+    }
+  }
 
-  showBirthdayDialog();
-}
+  void celebrateBirthday() {
+    if (petBirthdays[petName] == null) {
+      setState(() {
+        status = 'Сначала задай дату дня рождения для $petName!';
+      });
+      setBirthdayDate();
+      return;
+    }
+    if (isBirthdayCelebrated) {
+      setState(() {
+        status = 'День рождения $petName уже праздновали! 🎈';
+      });
+      return;
+    }
+    setState(() {
+      isBirthdayCelebrated = true;
+      mood = 10;
+      energy = min(10, energy + 5);
+      hunger = max(0, hunger - 3);
+      coins += 50;
+      status =
+          '🎉 С Днём Рождения, $petName! 🎈 Шарики, подарок и +50 монет! Настроение на максимуме!';
+      checkLevel();
+    });
+    showBirthdayDialog();
+  }
 
-void showBirthdayDialog() {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('🎉 День Рождения! 🎈', textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('🎈🎈🎈', style: TextStyle(fontSize: 48)),
-            const SizedBox(height: 12),
-            Text(
-              'С Днём Рождения, $petName!',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Подарок: +50 монет, настроение на максимум, энергия +5!',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pinkAccent,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Ура!'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-Widget rewardCard(int index) {
-  final reward = rewards[index];
-  final day = index + 1;
-
-  final bool isPast = day < rewardDay;
-  final bool isToday = day == rewardDay;
-  final bool isFuture = day > rewardDay;
-
-  Color color = Colors.grey.shade200;
-
-  if (isPast) color = Colors.green.shade100;
-  if (isToday) color = Colors.amber.shade100;
-  if (isFuture) color = Colors.grey.shade300;
-
-  return Container(
-    width: 90,
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(
-        color: isToday ? Colors.orange : Colors.transparent,
-        width: 3,
-      ),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'День $day',
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 8),
-        Icon(
-          reward['icon'] as IconData,
-          size: 36,
-          color: isFuture ? Colors.grey : Colors.orange,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          isFuture ? 'Скоро' : reward['title'],
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ],
-    ),
-  );
-}
-  void showPromoDialog() {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Секретный промокод'),
-        content: TextField(
-          controller: cccp,
-          decoration: const InputDecoration(
-            hintText: 'Например: COOKIE',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Закрыть'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              caxapok();
-            },
-            child: const Text('Активировать'),
-          ),
-        ],
-      );
-    },
-  );
-}
-  void showRewardCalendar() {
-  // showDialog показывает всплывающее окно поверх приложения.
-  showDialog(
-    // context нужен Flutter, чтобы понять, где именно открыть окно.
-    context: context,
-
-    // builder строит то, что будет внутри всплывающего окна.
-    builder: (context) {
-      // Dialog - само красивое окно.
-      return Dialog(
-        // shape отвечает за форму окна.
-        // Здесь мы делаем скругленные углы.
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-child: ConstrainedBox(
-  constraints: BoxConstraints(
-    maxHeight: MediaQuery.of(context).size.height * 0.85,
-  ),
-  child: SingleChildScrollView(
-        // child - содержимое окна.
-        child: Padding(
-          // Padding добавляет отступы внутри окна,
-          // чтобы текст и кнопки не прилипали к краям.
-          padding: const EdgeInsets.all(18),
-
-          child: Column(
-            // mainAxisSize.min значит:
-            // окно будет по высоте ровно под содержимое,
-            // а не растянется на весь экран.
+  void showBirthdayDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: const Text('🎉 День Рождения! 🎈', textAlign: TextAlign.center),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
-
-            // children - все элементы внутри окна сверху вниз.
             children: [
-              // Заголовок окна.
-              const Text(
-                'Календарь наград',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-
-              // Небольшой отступ между заголовком и днем.
-              const SizedBox(height: 8),
-
-              // Показываем текущий день награды.
+              const Text('🎈🎈🎈', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 12),
               Text(
-                'День $rewardDay из 7',
+                'С Днём Рождения, $petName!',
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                    fontSize: 20, fontWeight: FontWeight.w800),
               ),
-
-              const SizedBox(height: 18),
-
-              // Wrap раскладывает карточки наград.
-              // Если карточки не помещаются в одну строку,
-              // они переходят на следующую.
-              Wrap(
-                spacing: 10, // расстояние между карточками по горизонтали
-                runSpacing: 10, // расстояние между строками карточек
-                alignment: WrapAlignment.center,
-
-                // List.generate создает 7 карточек.
-                // rewardCard - функция, которая рисует одну карточку.
-                children: List.generate(7, rewardCard),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Кнопка "Забрать".
-              ElevatedButton(
-                // Если rewardTaken == true, ставим null.
-                // onPressed: null выключает кнопку.
-                onPressed: rewardTaken
-                    ? null
-                    : () {
-                        // collectReward начисляет награду.
-                        collectReward();
-
-                        // Navigator.pop закрывает окно.
-                        Navigator.pop(context);
-                      },
-
-                // Стиль кнопки: цвет, текст, размер.
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 16,
-                  ),
-                ),
-
-                // Текст на кнопке меняется:
-                // если награда забрана - "Уже забрано",
-                // иначе - "Забрать".
-                child: Text(
-                  rewardTaken ? 'Уже забрано' : 'Забрать',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-
-              // Кнопка закрытия без получения награды.
-              TextButton(
-                onPressed: () {
-                  // Закрываем окно.
-                  Navigator.pop(context);
-                },
-                child: const Text('Закрыть'),
+              const SizedBox(height: 8),
+              const Text(
+                'Подарок: +50 монет, настроение на максимум, энергия +5!',
+                textAlign: TextAlign.center,
               ),
             ],
           ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pinkAccent,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Ура!'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget rewardCard(int index) {
+    final reward = rewards[index];
+    final day = index + 1;
+    final bool isPast = day < rewardDay;
+    final bool isToday = day == rewardDay;
+    final bool isFuture = day > rewardDay;
+    Color color = Colors.grey.shade200;
+    if (isPast) color = Colors.green.shade100;
+    if (isToday) color = Colors.amber.shade100;
+    if (isFuture) color = Colors.grey.shade300;
+
+    return Container(
+      width: 90,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isToday ? Colors.orange : Colors.transparent,
+          width: 3,
         ),
-      )));
-    },
-  );
-}
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('День $day',
+              style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Icon(reward['icon'] as IconData,
+              size: 36, color: isFuture ? Colors.grey : Colors.orange),
+          const SizedBox(height: 8),
+          Text(
+            isFuture ? 'Скоро' : reward['title'],
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showPromoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Секретный промокод'),
+          content: TextField(
+            controller: cccp,
+            decoration: const InputDecoration(hintText: 'Например: COOKIE'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Закрыть'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                caxapok();
+              },
+              child: const Text('Активировать'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showRewardCalendar() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Календарь наград',
+                        style: TextStyle(
+                            fontSize: 26, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    Text('День $rewardDay из 7',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 18),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: List.generate(7, rewardCard),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: rewardTaken
+                          ? null
+                          : () {
+                              collectReward();
+                              Navigator.pop(context);
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 16),
+                      ),
+                      child: Text(
+                        rewardTaken ? 'Уже забрано' : 'Забрать',
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Закрыть'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget petPicture() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
@@ -749,11 +840,9 @@ child: ConstrainedBox(
               color: const Color(0xFFFFF5B8),
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const Text(
-              'Картинка\nне загрузилась',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
+            child: const Text('Картинка\nне загрузилась',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w800)),
           );
         },
       ),
@@ -786,11 +875,7 @@ child: ConstrainedBox(
   }
 
   Widget actionButton(
-    String text,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
+      String text, IconData icon, Color color, VoidCallback onTap) {
     return ElevatedButton.icon(
       onPressed: onTap,
       icon: Icon(icon),
@@ -799,23 +884,20 @@ child: ConstrainedBox(
         backgroundColor: color,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
-@override
-void initState() {
-  // super.initState() запускает стандартную настройку экрана.
-  // Его почти всегда пишут первым внутри initState.
-  super.initState();
 
-  // addPostFrameCallback говорит Flutter:
-  // "Сначала нарисуй экран, а потом выполни этот код".
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    // Открываем окно с календарем наград при входе в игру.
-    showRewardCalendar();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showRewardCalendar();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -855,6 +937,16 @@ void initState() {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    // Название текущего скина
+                    Text(
+                      'Скин: $currentSkinName',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.purple.shade400,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'Настроение: $moodText',
@@ -865,18 +957,17 @@ void initState() {
                       ),
                     ),
                     if (petBirthdays[petName] != null)
-  Padding(
-    padding: const EdgeInsets.only(top: 4),
-    child: Text(
-      '🎂 ДР: ${_formatDate(petBirthdays[petName]!)}',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.pink.shade400,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  ),
-
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '🎂 ДР: ${_formatDate(petBirthdays[petName]!)}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.pink.shade400,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 14),
                     Container(
                       width: double.infinity,
@@ -906,20 +997,12 @@ void initState() {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text(
-                          'Монетки: $coins',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          'Уровень: $level',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                        Text('Монетки: $coins',
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w800)),
+                        Text('Уровень: $level',
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w800)),
                       ],
                     ),
                     const SizedBox(height: 18),
@@ -937,118 +1020,59 @@ void initState() {
                 runSpacing: 10,
                 alignment: WrapAlignment.center,
                 children: [
-      actionButton(
-        'Награды',
-        Icons.calendar_month,
-        Colors.amber,
-        showRewardCalendar,
-      ),
-      actionButton(
-        'Новый день',
-        Icons.next_plan,
-        Colors.green,
-        nextRewardDay,
-      ),
+                  actionButton('Награды', Icons.calendar_month, Colors.amber,
+                      showRewardCalendar),
                   actionButton(
-  'Промокод',
-  Icons.lock_open,
-  Colors.deepPurple,
-  showPromoDialog,
-),
-                    actionButton(
-                    'Покормить',
-                    Icons.restaurant,
-                    Colors.orange,
-                    feedPet,
-                  ),
+                      'Новый день', Icons.next_plan, Colors.green, nextRewardDay),
+                  actionButton('Промокод', Icons.lock_open, Colors.deepPurple,
+                      showPromoDialog),
                   actionButton(
-                    'Играть',
-                    Icons.sports_esports,
-                    Colors.pinkAccent,
-                    playWithPet,
-                  ),
+                      'Скины', Icons.palette, Colors.purple, showSkinDialog),
                   actionButton(
-                    'Спать',
-                    Icons.bedtime,
-                    Colors.indigo,
-                    sleepPet,
-                  ),
+                      'Покормить', Icons.restaurant, Colors.orange, feedPet),
                   actionButton(
-                    'Сюрприз',
-                    Icons.casino,
-                    Colors.teal,
-                    surprise,
-                  ),
+                      'Играть', Icons.sports_esports, Colors.pinkAccent, playWithPet),
+                  actionButton('Спать', Icons.bedtime, Colors.indigo, sleepPet),
                   actionButton(
-                    'Сменить',
-                    Icons.auto_awesome,
-                    Colors.purple,
-                    changePet,
-                  ),
-                
+                      'Сюрприз', Icons.casino, Colors.teal, surprise),
                   actionButton(
-                    'Обнять',
-                    Icons.favorite,
-                    Colors.redAccent,
-                    hugPet,
-                  ),
+                      'Сменить', Icons.auto_awesome, Colors.purple, changePet),
                   actionButton(
-  'Праздник',
-  Icons.cake,
-  Colors.pink,
-  celebrateBirthday,
-),
-
+                      'Обнять', Icons.favorite, Colors.redAccent, hugPet),
+                  actionButton(
+                      'Праздник', Icons.cake, Colors.pink, celebrateBirthday),
                 ],
-             ),
+              ),
               const SizedBox(height: 18),
-
-Container(
-  width: double.infinity,
-  padding: const EdgeInsets.all(18),
-  decoration: BoxDecoration(
-    color: Colors.white.withOpacity(0.9),
-    borderRadius: BorderRadius.circular(24),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Магазин улучшений',
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      const SizedBox(height: 12),
-
-      Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-  actionButton(
-                    'Улучшение-65 монеток',
-                    Icons.shopping_bag,
-                    Colors.deepPurple,
-                    buyBow,
-                  ),
-            actionButton(
-                    'Улучшение-15 монеток',
-                    Icons.shopping_bag,
-                    Colors.deepPurple,
-                    buyCollar,
-                  ),
-          actionButton(
-  'Сундук $chestPrice',
-  Icons.card_giftcard,
-  Color(0xff7caa74),
-  openChest,
-),
-        ],
-      ),
-    ],
-  ),
-),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Магазин улучшений',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        actionButton('Улучшение-65 монеток', Icons.shopping_bag,
+                            Colors.deepPurple, buyBow),
+                        actionButton('Улучшение-15 монеток', Icons.shopping_bag,
+                            Colors.deepPurple, buyCollar),
+                        actionButton('Сундук $chestPrice', Icons.card_giftcard,
+                            const Color(0xff7caa74), openChest),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
