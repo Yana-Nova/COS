@@ -21,6 +21,230 @@ class PetMoodApp extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+//  Экран выбора питомцев
+// ─────────────────────────────────────────────
+class PetSelectionPage extends StatefulWidget {
+  final int coins;
+  final int level;
+  final String currentPetName;
+  final Set<String> purchasedPets;
+  final void Function(String petName) onPetSelected;
+  final void Function(String petName, int price) onPetPurchased;
+
+  const PetSelectionPage({
+    super.key,
+    required this.coins,
+    required this.level,
+    required this.currentPetName,
+    required this.purchasedPets,
+    required this.onPetSelected,
+    required this.onPetPurchased,
+  });
+
+  @override
+  State<PetSelectionPage> createState() => _PetSelectionPageState();
+}
+
+class _PetSelectionPageState extends State<PetSelectionPage> {
+  // Условия разблокировки: имя → (требуемый уровень, цена)
+  static const Map<String, Map<String, int>> unlockConditions = {
+    'Ghartokus': {'level': 1, 'price': 0},
+    'Aereis':    {'level': 1, 'price': 150},
+    'Angelic':   {'level': 3, 'price': 200},
+    'Verdant':   {'level': 5, 'price': 300},
+  };
+
+  // Данные питомцев для экрана выбора (имя, базовая картинка, кол-во скинов)
+  static const List<Map<String, dynamic>> petInfo = [
+    {
+      'name': 'Ghartokus',
+      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/ghartokus.jpeg',
+      'skins': 4,
+    },
+    {
+      'name': 'Aereis',
+      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg',
+      'skins': 2,
+    },
+    {
+      'name': 'Angelic',
+      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg',
+      'skins': 2,
+    },
+    {
+      'name': 'Verdant',
+      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg',
+      'skins': 2,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Выбор питомца'),
+        centerTitle: true,
+        backgroundColor: Colors.white70,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: petInfo.map((pet) {
+              final name = pet['name'] as String;
+              final image = pet['image'] as String;
+              final skinsCount = pet['skins'] as int;
+              final cond = unlockConditions[name]!;
+              final reqLevel = cond['level']!;
+              final price = cond['price']!;
+              final isPurchased = widget.purchasedPets.contains(name);
+              final isCurrent = widget.currentPetName == name;
+              final levelOk = widget.level >= reqLevel;
+              final coinsOk = widget.coins >= price;
+              final canBuy = levelOk && coinsOk && !isPurchased;
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      // Картинка питомца
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.network(
+                          image,
+                          height: 90,
+                          width: 90,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (ctx, child, prog) {
+                            if (prog == null) return child;
+                            return const SizedBox(
+                              height: 90,
+                              width: 90,
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          },
+                          errorBuilder: (ctx, err, st) => Container(
+                            height: 90,
+                            width: 90,
+                            color: Colors.grey.shade200,
+                            child: const Icon(Icons.pets, size: 40),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      // Инфо + кнопки
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Text(
+                              '$skinsCount ${_skinWord(skinsCount)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            if (isPurchased)
+                              isCurrent
+                                  ? const Text('Текущий питомец ✓',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w700,
+                                      ))
+                                  : Align(
+                                      alignment: Alignment.centerRight,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          widget.onPetSelected(name);
+                                          Navigator.pop(context);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.lightGreen,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                        ),
+                                        child: const Text('Выбрать'),
+                                      ),
+                                    )
+                            else ...[
+                              if (!levelOk)
+                                Text(
+                                  'Требуется $reqLevel уровень',
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'Цена: $price монет',
+                                  style: TextStyle(
+                                    color: coinsOk ? Colors.black87 : Colors.red,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              const SizedBox(height: 6),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: ElevatedButton(
+                                  onPressed: canBuy
+                                      ? () {
+                                          widget.onPetPurchased(name, price);
+                                          setState(() {});
+                                        }
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: canBuy ? Colors.amber : Colors.grey,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: Text(canBuy ? 'Открыть' : 'Недоступно'),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _skinWord(int n) {
+    if (n == 1) return 'скин';
+    if (n >= 2 && n <= 4) return 'скина';
+    return 'скинов';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Главный экран
+// ─────────────────────────────────────────────
 class PetHomePage extends StatefulWidget {
   const PetHomePage({super.key});
 
@@ -31,64 +255,69 @@ class PetHomePage extends StatefulWidget {
 class _PetHomePageState extends State<PetHomePage> {
   final Random random = Random();
 
-  // ── Питомцы со скинами и ценами ──
+  // ── Данные питомцев со скинами ──
   final List<Map<String, dynamic>> pets = [
     {
       'name': 'Ghartokus',
       'skins': [
-        {'name': 'Базовый',       'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/ghartokus.jpeg',            'price': 0},
-        {'name': 'Цветочный',      'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FlowerGhart.jpg',         'price': 50},
-        {'name': 'Золотое солнце', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/GoldenSunshineGhart.jpeg','price': 80},
-        {'name': 'Осенний огонь',  'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/OutumnOnFireGHART.jpg',   'price': 120},
+        {'name': 'Базовый', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/ghartokus.jpeg', 'price': 0},
+        {'name': 'Цветочный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FlowerGhart.jpg', 'price': 50},
+        {'name': 'Золотое солнце', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/GoldenSunshineGhart.jpeg', 'price': 80},
+        {'name': 'Осенний огонь', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/OutumnOnFireGHART.jpg', 'price': 120},
       ],
     },
     {
       'name': 'Aereis',
       'skins': [
-        {'name': 'Базовый',  'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg',     'price': 0},
-        {'name': 'Огненный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FireAereis.jpg','price': 100},
+        {'name': 'Базовый', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Aereis.jpg', 'price': 0},
+        {'name': 'Огненный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/FireAereis.jpg', 'price': 100},
       ],
     },
     {
       'name': 'Angelic',
       'skins': [
-        {'name': 'Базовый',   'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg',      'price': 0},
-        {'name': 'Серебряный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/AngelicSkin.jpeg','price': 90},
+        {'name': 'Базовый', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Angelic.jpg', 'price': 0},
+        {'name': 'Серебряный', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/AngelicSkin.jpeg', 'price': 90},
       ],
     },
     {
       'name': 'Verdant',
       'skins': [
-        {'name': 'Базовый', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg',     'price': 0},
-        {'name': 'SF Verdant', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/SF%20Verdant.jpg','price': 110},
+        {'name': 'Базовый', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/Verdant.jpg', 'price': 0},
+        {'name': 'SF Verdant', 'image': 'https://raw.githubusercontent.com/Yana-Nova/COS/main/SF%20Verdant.jpg', 'price': 110},
       ],
     },
   ];
 
-  // ── Текущий индекс питомца ──
-  int currentPetIndex = 1; // Angelic по умолчанию
+  // ── Индекс текущего питомца ──
+  int currentPetIndex = 0;
 
   // ── Выбранный скин для каждого питомца (по имени) ──
-  final Map<String, int> petSkinIndices = {};
+  Map<String, int> petSkinIndices = {};
 
-  // ── Купленные скины (по имени питомца + индекс скина) ──
-  final Set<String> purchasedSkins = {};
+  // ── Купленные скины: "Ghartokus:Цветочный" ──
+  Set<String> purchasedSkins = {};
 
-  // ── Геттеры для имени и картинки текущего питомца ──
+  // ── Купленные питомцы ──
+  Set<String> purchasedPets = {};
+
+  // ── Геттеры ──
   String get petName => pets[currentPetIndex]['name'] as String;
+
   String get petImage {
     final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
     final idx = petSkinIndices[petName] ?? 0;
     return skins[idx]['image'] as String;
   }
+
   String get currentSkinName {
     final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
     final idx = petSkinIndices[petName] ?? 0;
     return skins[idx]['name'] as String;
   }
 
+  // ── Состояние ──
   String status = 'Я только проснулась. Что будем делать?';
-
   int mood = 6;
   int hunger = 4;
   int energy = 7;
@@ -98,6 +327,11 @@ class _PetHomePageState extends State<PetHomePage> {
   bool rewardTaken = false;
   final TextEditingController cccp = TextEditingController();
   final Set<String> usedPromocode = {};
+  bool umetbYly4weHue = false;
+  bool haveAcollar = false;
+  Map<String, DateTime> petBirthdays = {};
+  bool isBirthdayCelebrated = false;
+
   final List<Map<String, dynamic>> rewards = [
     {'title': '+10 монет', 'coins': 10, 'icon': Icons.monetization_on},
     {'title': '+15 монет', 'coins': 15, 'icon': Icons.monetization_on},
@@ -108,6 +342,74 @@ class _PetHomePageState extends State<PetHomePage> {
     {'title': 'Супер приз', 'coins': 100, 'mood': 5, 'icon': Icons.star},
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    purchasedPets.add('Ghartokus');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showRewardCalendar();
+    });
+  }
+
+  // ── Смена питомца (с экрана выбора) ──
+  void selectPet(String name) {
+    final idx = pets.indexWhere((p) => p['name'] == name);
+    if (idx != -1) {
+      setState(() {
+        currentPetIndex = idx;
+        isBirthdayCelebrated = false;
+        if (petBirthdays.containsKey(petName)) {
+          status = 'Теперь у меня новый питомец! ДР: ${_formatDate(petBirthdays[petName]!)}';
+        } else {
+          status = 'Теперь у меня новый питомец! Не забудь задать день рождения.';
+        }
+      });
+    }
+  }
+
+  // ── Покупка питомца ──
+  void purchasePet(String name, int price) {
+    setState(() {
+      coins -= price;
+      purchasedPets.add(name);
+      status = 'Питомец $name разблокирован! 🎉';
+      final idx = pets.indexWhere((p) => p['name'] == name);
+      if (idx != -1) {
+        currentPetIndex = idx;
+        isBirthdayCelebrated = false;
+      }
+    });
+  }
+
+  // ── Смена скина ──
+  void changeSkin(int skinIndex) {
+    final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
+    final skinName = skins[skinIndex]['name'] as String;
+    final skinPrice = skins[skinIndex]['price'] as int;
+    final skinKey = '$petName:$skinName';
+
+    if (skinPrice == 0 || purchasedSkins.contains(skinKey)) {
+      setState(() {
+        petSkinIndices[petName] = skinIndex;
+        status = 'Скин изменён: $skinName';
+      });
+    } else {
+      if (coins >= skinPrice) {
+        setState(() {
+          coins -= skinPrice;
+          purchasedSkins.add(skinKey);
+          petSkinIndices[petName] = skinIndex;
+          status = 'Куплен скин: $skinName! 🎉';
+        });
+      } else {
+        setState(() {
+          status = 'Не хватает ${skinPrice - coins} монет на скин $skinName.';
+        });
+      }
+    }
+  }
+
+  // ── Награды ──
   void collectReward() {
     setState(() {
       final reward = rewards[rewardDay - 1];
@@ -126,6 +428,20 @@ class _PetHomePageState extends State<PetHomePage> {
     });
   }
 
+  void nextRewardDay() {
+    setState(() {
+      if (rewardDay >= 7) {
+        rewardDay = 1;
+        status = 'Новая неделя наград началась!';
+      } else {
+        rewardDay += 1;
+        status = 'Наступил день $rewardDay!';
+      }
+      rewardTaken = false;
+    });
+  }
+
+  // ── Промокоды ──
   void caxapok() {
     String tanok = cccp.text.trim().toUpperCase();
     setState(() {
@@ -157,7 +473,7 @@ class _PetHomePageState extends State<PetHomePage> {
         coins += 200;
         energy = 10;
         mood = 10;
-        promoStatus = 'Промокод ANGELICPROMOTICKET принят! +200 монет и Энергия и настроение на максимум.';
+        promoStatus = 'Промокод ANGELICPROMOTICKET принят! +200 монет, энергия и настроение на максимум.';
         usedPromocode.add(tanok);
         promoActivated = true;
       } else if (tanok == 'COSPROMO') {
@@ -182,47 +498,8 @@ class _PetHomePageState extends State<PetHomePage> {
     });
   }
 
-  void nextRewardDay() {
-    setState(() {
-      if (rewardDay >= 7) {
-        rewardDay = 1;
-        status = 'Новая неделя наград началась!';
-      } else {
-        rewardDay += 1;
-        status = 'Наступил день $rewardDay!';
-      }
-      rewardTaken = false;
-    });
-  }
-
-  bool umetbYly4weHue = false;
-  bool haveAcollar = false;
-  Map<String, DateTime> petBirthdays = {};
-  bool isBirthdayCelebrated = false;
-
-  Color get backgroundColor {
-    if (mood >= 8) return const Color(0xFFFFE4F1);
-    if (mood >= 4) return const Color(0xFFE7F4FF);
-    return const Color(0xFFFFE8E1);
-  }
-
-  String get showPetName {
-    if (umetbYly4weHue) {
-      return 'Принцесса $petName';
-    }
-    return petName;
-  }
-
-  String get moodText {
-    if (mood >= 9) return 'счастье';
-    if (mood >= 6) return 'норм';
-    if (mood >= 3) return 'грусть';
-    return 'обида';
-  }
-
-  int get chestPrice {
-    return level * 5;
-  }
+  // ── Сундук ──
+  int get chestPrice => level * 5;
 
   void openChest() {
     setState(() {
@@ -248,30 +525,23 @@ class _PetHomePageState extends State<PetHomePage> {
       } else if (prize == 3) {
         hunger = max(0, hunger - 3);
         status = 'В сундуке вкусняшка! Голод -3.';
+        if (level >= 10) {
+          coins += 170;
+          status = 'Легендарный сундук! +170 монет!';
+        }
       }
       checkLevel();
     });
   }
 
-  void changePet() {
-    final pet = pets[random.nextInt(pets.length)];
-    setState(() {
-      currentPetIndex = pets.indexOf(pet);
-      isBirthdayCelebrated = false;
-      if (petBirthdays.containsKey(petName)) {
-        status = 'Теперь у меня новый питомец! ДР: ${_formatDate(petBirthdays[petName]!)}';
-      } else {
-        status = 'Теперь у меня новый питомец! Не забудь задать день рождения.';
-      }
-    });
-  }
-
+  // ── Кормление ──
   final _random = Random();
 
   void feedPet() {
     const baseCost = 2;
     final hasFoundCoin = _random.nextDouble() < 0.3;
     final isExtraHappy = _random.nextDouble() < 0.2;
+
     if (coins >= baseCost) {
       setState(() {
         hunger = max(0, hunger - 2);
@@ -324,9 +594,9 @@ class _PetHomePageState extends State<PetHomePage> {
         energy = max(0, energy - 2);
         hunger = min(10, hunger + 1);
         mood = min(10, mood + 2);
-        if (haveAcollar == true) {
+        if (haveAcollar) {
           coins += 52;
-          status = 'ошейник удачи сработал, +52 монеты';
+          status = 'Ошейник удачи сработал, +52 монеты!';
         } else {
           coins += 2;
           status = 'Вы поиграли. Весело! +2 монетки.';
@@ -370,8 +640,8 @@ class _PetHomePageState extends State<PetHomePage> {
 
   void buyCollar() {
     setState(() {
-      if (haveAcollar == true) {
-        status = 'ошейник уже куплен';
+      if (haveAcollar) {
+        status = 'Ошейник уже куплен';
       } else if (coins >= 15) {
         coins -= 15;
         haveAcollar = true;
@@ -384,8 +654,8 @@ class _PetHomePageState extends State<PetHomePage> {
 
   void buyBow() {
     setState(() {
-      if (umetbYly4weHue == true) {
-        status = 'Bbl yжe kynuлu yлyчшeнue';
+      if (umetbYly4weHue) {
+        status = 'Вы уже купили улучшение';
       } else if (coins >= 67) {
         coins -= 67;
         umetbYly4weHue = true;
@@ -502,44 +772,171 @@ class _PetHomePageState extends State<PetHomePage> {
     );
   }
 
-  Widget rewardCard(int index) {
-    final reward = rewards[index];
-    final day = index + 1;
-    final bool isPast = day < rewardDay;
-    final bool isToday = day == rewardDay;
-    final bool isFuture = day > rewardDay;
-    Color color = Colors.grey.shade200;
-    if (isPast) color = Colors.green.shade100;
-    if (isToday) color = Colors.amber.shade100;
-    if (isFuture) color = Colors.grey.shade300;
-    return Container(
-      width: 90,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isToday ? Colors.orange : Colors.transparent,
-          width: 3,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('День $day', style: const TextStyle(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          Icon(reward['icon'] as IconData, size: 36, color: isFuture ? Colors.grey : Colors.orange),
-          const SizedBox(height: 8),
-          Text(
-            isFuture ? 'Скоро' : reward['title'],
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
+  // ── Геттеры для UI ──
+  Color get backgroundColor {
+    if (mood >= 8) return const Color(0xFFFFE4F1);
+    if (mood >= 4) return const Color(0xFFE7F4FF);
+    return const Color(0xFFFFE8E1);
+  }
+
+  String get showPetName {
+    if (umetbYly4weHue) {
+      return 'Принцесса $petName';
+    }
+    return petName;
+  }
+
+  String get moodText {
+    if (mood >= 9) return 'счастье';
+    if (mood >= 6) return 'норм';
+    if (mood >= 3) return 'грусть';
+    return 'обида';
+  }
+
+  // ── Диалог скинов ──
+  void showSkinDialog() {
+    final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
+    final currentSkinIdx = petSkinIndices[petName] ?? 0;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text('Скины: $petName'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: skins.length,
+                  itemBuilder: (context, index) {
+                    final skin = skins[index];
+                    final skinName = skin['name'] as String;
+                    final skinImage = skin['image'] as String;
+                    final skinPrice = skin['price'] as int;
+                    final skinKey = '$petName:$skinName';
+                    final isCurrent = index == currentSkinIdx;
+                    final isFree = skinPrice == 0;
+                    final isBought = purchasedSkins.contains(skinKey);
+                    final canAfford = coins >= skinPrice;
+
+                    return GestureDetector(
+                      onTap: () {
+                        if (isFree || isBought) {
+                          setState(() {
+                            petSkinIndices[petName] = index;
+                          });
+                          setDialogState(() {
+                            currentPetIndex = currentPetIndex; // триггер
+                          });
+                          Navigator.pop(context);
+                        } else {
+                          if (canAfford) {
+                            setState(() {
+                              coins -= skinPrice;
+                              purchasedSkins.add(skinKey);
+                              petSkinIndices[petName] = index;
+                            });
+                            setDialogState(() {});
+                            Navigator.pop(context);
+                          } else {
+                            setState(() {
+                              status = 'Не хватает ${skinPrice - coins} монет на скин $skinName.';
+                            });
+                          }
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: isCurrent ? Colors.pinkAccent : Colors.grey.shade300,
+                            width: isCurrent ? 3 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              child: Image.network(
+                                skinImage,
+                                height: 80,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (ctx, child, prog) {
+                                  if (prog == null) return child;
+                                  return const SizedBox(
+                                    height: 80,
+                                    child: Center(child: CircularProgressIndicator()),
+                                  );
+                                },
+                                errorBuilder: (ctx, err, st) => Container(
+                                  height: 80,
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(Icons.image_not_supported),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    skinName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  if (isCurrent)
+                                    const Text('Выбран ✓', style: TextStyle(fontSize: 12, color: Colors.pinkAccent, fontWeight: FontWeight.w700))
+                                  else if (isFree)
+                                    const Text('Бесплатно', style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w700))
+                                  else if (isBought)
+                                    const Text('Куплено ✓', style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.w700))
+                                  else
+                                    Text(
+                                      '$skinPrice монет',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: canAfford ? Colors.black87 : Colors.red,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Закрыть'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
+  // ── Диалог промокода ──
   void showPromoDialog() {
     showDialog(
       context: context,
@@ -568,6 +965,46 @@ class _PetHomePageState extends State<PetHomePage> {
     );
   }
 
+  // ── Календарь наград ──
+  Widget rewardCard(int index) {
+    final reward = rewards[index];
+    final day = index + 1;
+    final bool isPast = day < rewardDay;
+    final bool isToday = day == rewardDay;
+    final bool isFuture = day > rewardDay;
+    Color color = Colors.grey.shade200;
+    if (isPast) color = Colors.green.shade100;
+    if (isToday) color = Colors.amber.shade100;
+    if (isFuture) color = Colors.grey.shade300;
+
+    return Container(
+      width: 90,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isToday ? Colors.orange : Colors.transparent,
+          width: 3,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('День $day', style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Icon(reward['icon'] as IconData, size: 36, color: isFuture ? Colors.grey : Colors.orange),
+          const SizedBox(height: 8),
+          Text(
+            isFuture ? 'Скоро' : reward['title'],
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
   void showRewardCalendar() {
     showDialog(
       context: context,
@@ -575,7 +1012,9 @@ class _PetHomePageState extends State<PetHomePage> {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -586,7 +1025,12 @@ class _PetHomePageState extends State<PetHomePage> {
                     const SizedBox(height: 8),
                     Text('День $rewardDay из 7', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 18),
-                    Wrap(spacing: 10, runSpacing: 10, alignment: WrapAlignment.center, children: List.generate(7, rewardCard)),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: List.generate(7, rewardCard),
+                    ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: rewardTaken
@@ -600,7 +1044,10 @@ class _PetHomePageState extends State<PetHomePage> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                       ),
-                      child: Text(rewardTaken ? 'Уже забрано' : 'Забрать', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      child: Text(
+                        rewardTaken ? 'Уже забрано' : 'Забрать',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                      ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -616,190 +1063,7 @@ class _PetHomePageState extends State<PetHomePage> {
     );
   }
 
-  // ── Ключ покупки скина ──
-  String _skinKey(String pet, int idx) => '$pet:$idx';
-
-  // ── Покупка / смена скина ──
-  void changeSkin(int skinIndex) {
-    final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
-    final skin = skins[skinIndex];
-    final price = skin['price'] as int;
-    final key = _skinKey(petName, skinIndex);
-
-    setState(() {
-      if (price == 0) {
-        // Базовый скин — бесплатно
-        petSkinIndices[petName] = skinIndex;
-        status = 'Скин изменён: ${skin['name']}';
-      } else if (purchasedSkins.contains(key)) {
-        // Уже куплен — просто надеваем
-        petSkinIndices[petName] = skinIndex;
-        status = 'Скин изменён: ${skin['name']}';
-      } else if (coins >= price) {
-        // Покупаем
-        coins -= price;
-        purchasedSkins.add(key);
-        petSkinIndices[petName] = skinIndex;
-        status = 'Куплен скин «${skin['name']}» за $price монет!';
-        checkLevel();
-      } else {
-        status = 'Не хватает $price монет на скин «${skin['name']}».';
-      }
-    });
-  }
-
-  // ── Диалог выбора скинов ──
-  void showSkinDialog() {
-    final skins = pets[currentPetIndex]['skins'] as List<Map<String, dynamic>>;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Скины', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 4),
-                        Text('для $petName', style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 18),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.72,
-                          ),
-                          itemCount: skins.length,
-                          itemBuilder: (context, index) {
-                            final skin = skins[index];
-                            final price = skin['price'] as int;
-                            final key = _skinKey(petName, index);
-                            final isCurrent = (petSkinIndices[petName] ?? 0) == index;
-                            final isPurchased = price == 0 || purchasedSkins.contains(key);
-                            final canAfford = coins >= price;
-
-                            return GestureDetector(
-                              onTap: () {
-                                if (price == 0 || purchasedSkins.contains(key)) {
-                                  changeSkin(index);
-                                  setDialogState(() {});
-                                } else if (coins >= price) {
-                                  changeSkin(index);
-                                  setDialogState(() {});
-                                } else {
-                                  setDialogState(() {
-                                    status = 'Не хватает $price монет на скин «${skin['name']}».';
-                                  });
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isCurrent ? Colors.pink.shade50 : Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: isCurrent ? Colors.pinkAccent : Colors.grey.shade300,
-                                    width: isCurrent ? 3 : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                                      child: Image.network(
-                                        skin['image'] as String,
-                                        height: 90,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        loadingBuilder: (context, child, progress) {
-                                          if (progress == null) return child;
-                                          return const SizedBox(
-                                            height: 90,
-                                            child: Center(child: CircularProgressIndicator()),
-                                          );
-                                        },
-                                        errorBuilder: (context, error, stack) => Container(
-                                          height: 90,
-                                          color: Colors.grey.shade200,
-                                          child: const Icon(Icons.broken_image, size: 32),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                                      child: Text(
-                                        skin['name'] as String,
-                                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    // ── Цена / статус ──
-                                    if (price == 0)
-                                      const Text('Бесплатно', style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.w700))
-                                    else if (isPurchased)
-                                      const Text('Куплено ✓', style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.w700))
-                                    else
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.monetization_on, size: 14, color: canAfford ? Colors.amber.shade700 : Colors.grey),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            '$price',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w800,
-                                              color: canAfford ? Colors.black87 : Colors.grey,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    if (isCurrent)
-                                      const Padding(
-                                        padding: EdgeInsets.only(top: 4),
-                                        child: Icon(Icons.check_circle, color: Colors.pinkAccent, size: 20),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Монеты: $coins',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Закрыть'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
+  // ── Виджеты ──
   Widget petPicture() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
@@ -872,14 +1136,6 @@ class _PetHomePageState extends State<PetHomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showRewardCalendar();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -893,6 +1149,7 @@ class _PetHomePageState extends State<PetHomePage> {
           padding: const EdgeInsets.all(18),
           child: Column(
             children: [
+              // ── Карточка питомца ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -911,16 +1168,13 @@ class _PetHomePageState extends State<PetHomePage> {
                   children: [
                     petPicture(),
                     const SizedBox(height: 12),
-                    Text(
-                      showPetName,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-                    ),
+                    Text(showPetName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
                     Text(
                       'Скин: $currentSkinName',
                       style: TextStyle(fontSize: 14, color: Colors.purple.shade400, fontWeight: FontWeight.w600),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       'Настроение: $moodText',
                       style: TextStyle(fontSize: 18, color: Colors.grey.shade700, fontWeight: FontWeight.w700),
@@ -947,6 +1201,8 @@ class _PetHomePageState extends State<PetHomePage> {
                 ),
               ),
               const SizedBox(height: 18),
+
+              // ── Статы ──
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -972,6 +1228,8 @@ class _PetHomePageState extends State<PetHomePage> {
                 ),
               ),
               const SizedBox(height: 18),
+
+              // ── Кнопки действий ──
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -980,17 +1238,38 @@ class _PetHomePageState extends State<PetHomePage> {
                   actionButton('Награды', Icons.calendar_month, Colors.amber, showRewardCalendar),
                   actionButton('Новый день', Icons.next_plan, Colors.green, nextRewardDay),
                   actionButton('Промокод', Icons.lock_open, Colors.deepPurple, showPromoDialog),
+                  actionButton(
+                    'Питомцы',
+                    Icons.pets,
+                    Colors.teal,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PetSelectionPage(
+                            coins: coins,
+                            level: level,
+                            currentPetName: petName,
+                            purchasedPets: purchasedPets,
+                            onPetSelected: selectPet,
+                            onPetPurchased: purchasePet,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   actionButton('Скины', Icons.palette, Colors.purple, showSkinDialog),
                   actionButton('Покормить', Icons.restaurant, Colors.orange, feedPet),
                   actionButton('Играть', Icons.sports_esports, Colors.pinkAccent, playWithPet),
                   actionButton('Спать', Icons.bedtime, Colors.indigo, sleepPet),
                   actionButton('Сюрприз', Icons.casino, Colors.teal, surprise),
-                  actionButton('Сменить', Icons.auto_awesome, Colors.purple, changePet),
                   actionButton('Обнять', Icons.favorite, Colors.redAccent, hugPet),
                   actionButton('Праздник', Icons.cake, Colors.pink, celebrateBirthday),
                 ],
               ),
               const SizedBox(height: 18),
+
+              // ── Магазин ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -1009,7 +1288,7 @@ class _PetHomePageState extends State<PetHomePage> {
                       children: [
                         actionButton('Улучшение-65 монеток', Icons.shopping_bag, Colors.deepPurple, buyBow),
                         actionButton('Улучшение-15 монеток', Icons.shopping_bag, Colors.deepPurple, buyCollar),
-                        actionButton('Сундук $chestPrice', Icons.card_giftcard, Color(0xff7caa74), openChest),
+                        actionButton('Сундук $chestPrice', Icons.card_giftcard, const Color(0xff7caa74), openChest),
                       ],
                     ),
                   ],
