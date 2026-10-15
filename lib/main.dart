@@ -331,6 +331,12 @@ class _PetHomePageState extends State<PetHomePage> {
   bool haveAcollar = false;
   Map<String, DateTime> petBirthdays = {};
   bool isBirthdayCelebrated = false;
+  final List<Map<String, dynamic>> shopItems = [
+    {'id': 'bow', 'name': 'Бантик', 'price': 67, 'icon': Icons.pets, 'effect': '+2 к настроению'},
+    {'id': 'collar', 'name': 'Ошейник удачи', 'price': 15, 'icon': Icons.pets, 'effect': 'Даёт +50 монет при игре'},
+    {'id': 'hat', 'name': 'Шляпка', 'price': 85, 'icon': Icons.person_pin_circle, 'effect': '+1 к стилю (визуал)'},
+    {'id': 'cape', 'name': 'Плащ', 'price': 120, 'icon': Icons.wrap_text, 'effect': '+2 к стилю (визуал)'},
+  ];
 
   final List<Map<String, dynamic>> rewards = [
     {'title': '+10 монет', 'coins': 10, 'icon': Icons.monetization_on},
@@ -664,6 +670,48 @@ class _PetHomePageState extends State<PetHomePage> {
       } else {
         status = 'Нужно 67 монеток. Пока не хватает.';
       }
+    });
+  }
+  void buyShopItem(String id) {
+    final item = shopItems.firstWhere((i) => i['id'] == id);
+    final price = item['price'] as int;
+    final name = item['name'] as String;
+
+    setState(() {
+      if (coins < price) {
+        status = 'Не хватает монет! Нужно $price для "$name".';
+        return;
+      }
+
+      switch (id) {
+        case 'bow':
+          if (umetbYly4weHue) {
+            status = 'Бантик уже куплен.';
+            return;
+          }
+          umetbYly4weHue = true;
+          mood = min(10, mood + 2);
+          status = 'Купили бантик! Настроение +2.';
+          break;
+        case 'collar':
+          if (haveAcollar) {
+            status = 'Ошейник уже куплен.';
+            return;
+          }
+          haveAcollar = true;
+          status = 'Купили ошейник удачи! Теперь игра даёт больше монет.';
+          break;
+        case 'hat':
+          // Можно добавить флаг boughtStyleHat, если нужно отслеживать отдельно
+          status = 'Купили шляпку! Стиль +1.';
+          break;
+        case 'cape':
+          status = 'Купили плащ! Стиль +2.';
+          break;
+      }
+
+      coins -= price;
+      checkLevel();
     });
   }
 
