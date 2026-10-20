@@ -644,34 +644,9 @@ class _PetHomePageState extends State<PetHomePage> {
     });
   }
 
-  void buyCollar() {
-    setState(() {
-      if (haveAcollar) {
-        status = 'Ошейник уже куплен';
-      } else if (coins >= 15) {
-        coins -= 15;
-        haveAcollar = true;
-        status = 'Купили ошейник удачи. Теперь игра дает больше монет!';
-      } else {
-        status = 'Нужно 15 монеток на ошейник.';
-      }
-    });
-  }
+  
 
-  void buyBow() {
-    setState(() {
-      if (umetbYly4weHue) {
-        status = 'Вы уже купили улучшение';
-      } else if (coins >= 67) {
-        coins -= 67;
-        umetbYly4weHue = true;
-        mood = min(10, mood + 2);
-        status = 'Купили бантик. Теперь стиль +100.';
-      } else {
-        status = 'Нужно 67 монеток. Пока не хватает.';
-      }
-    });
-  }
+  
   void buyShopItem(String id) {
     final item = shopItems.firstWhere((i) => i['id'] == id);
     final price = item['price'] as int;
@@ -1318,6 +1293,7 @@ class _PetHomePageState extends State<PetHomePage> {
               const SizedBox(height: 18),
 
               // ── Магазин ──
+                            // ── Магазин улучшений (сетка) ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -1330,18 +1306,72 @@ class _PetHomePageState extends State<PetHomePage> {
                   children: [
                     const Text('Магазин улучшений', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        actionButton('Улучшение-65 монеток', Icons.shopping_bag, Colors.deepPurple, buyBow),
-                        actionButton('Улучшение-15 монеток', Icons.shopping_bag, Colors.deepPurple, buyCollar),
-                        actionButton('Сундук $chestPrice', Icons.card_giftcard, const Color(0xff7caa74), openChest),
-                      ],
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.9,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                      ),
+                      itemCount: shopItems.length,
+                      itemBuilder: (context, index) {
+                        final item = shopItems[index];
+                        final id = item['id'] as String;
+                        final name = item['name'] as String;
+                        final price = item['price'] as int;
+                        final icon = item['icon'] as IconData;
+                        final effect = item['effect'] as String;
+
+                        bool isBought = false;
+                        switch (id) {
+                          case 'bow': isBought = umetbYly4weHue; break;
+                          case 'collar': isBought = haveAcollar; break;
+                          default: isBought = false; break;
+                        }
+
+                        return ElevatedButton.icon(
+                          onPressed: isBought
+                              ? null
+                              : () => buyShopItem(id),
+                          icon: Icon(icon, size: 24),
+                          label: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('$price монет', style: const TextStyle(fontSize: 14)),
+                              const SizedBox(height: 4),
+                              Text(effect, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            ],
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isBought ? Colors.grey : Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
+                                  ElevatedButton.icon(
+                      onPressed: level < 2
+                          ? null
+                          : () => openChest(),
+                      icon: const Icon(Icons.card_giftcard),
+                      label: Text('Сундук ($chestPrice)'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff7caa74),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+
               ),
+
             ],
           ),
         ),
