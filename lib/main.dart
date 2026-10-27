@@ -1311,7 +1311,7 @@ class _PetHomePageState extends State<PetHomePage> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.9,
+                        childAspectRatio: 2.9,
                         mainAxisSpacing: 8,
                         crossAxisSpacing: 8,
                       ),
@@ -1355,8 +1355,7 @@ class _PetHomePageState extends State<PetHomePage> {
                         );
                       },
                     ),
-                  ],
-                ),
+                  
                                   ElevatedButton.icon(
                       onPressed: level < 2
                           ? null
@@ -1369,7 +1368,8 @@ class _PetHomePageState extends State<PetHomePage> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
-
+],
+                ),
               ),
 
             ],
